@@ -1,4 +1,4 @@
-package httpwait
+package main
 
 import (
 	"flag"
