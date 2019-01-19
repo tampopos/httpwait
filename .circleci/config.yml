@@ -34,8 +34,8 @@ workflows:
             tags:
               ignore: /.*/
       - publish:
+          context: github-publish
           filters:
-            context: github-publish
             branches:
               ignore: /.*/
             tags:
