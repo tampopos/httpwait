@@ -17,7 +17,9 @@ jobs:
       - checkout
       - run:
           name: build
-          command: go build -o dist/httpwait
+          command: |
+            go get github.com/mitchellh/gox
+            gox -ldflags "-w -s" -output "dist/${CIRCLE_PROJECT_REPONAME}_{{.OS}}_{{.Arch}}"
       - run:
           name: "Publish Release on GitHub"
           command: |
