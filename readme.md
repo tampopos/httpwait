@@ -26,6 +26,12 @@ go run src/main.go
 go build -o dist/httpwait
 ```
 
+#### Test
+
+```sh
+go test ./src/httpwait/ -test.v
+```
+
 #### Release
 
 ```sh

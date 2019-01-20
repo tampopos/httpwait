@@ -29,6 +29,7 @@ func CreateUseCase(stopwatch stopwatch.Stopwatch, client client.Client) UseCase 
 // WaitArgs はWaitの引数です
 type WaitArgs struct {
 	client.Request
+	Interval   int
 	Result     string
 	StatusCode int
 }
@@ -41,6 +42,7 @@ func (useCase *useCase) CreateArgs() (*WaitArgs, error) {
 	flag.Float64Var(&args.Timeout, "timeout", 60, "Timeout Seconds")
 	flag.StringVar(&args.Result, "result", "", "HTTP request Result")
 	flag.IntVar(&args.StatusCode, "statusCode", -1, "HTTP request StatusCode")
+	flag.IntVar(&args.Interval, "interval", 5, "Request Interval Seconds")
 	flag.Parse()
 
 	if args.URL == "" {
@@ -62,7 +64,6 @@ func (useCase *useCase) Wait(args *WaitArgs) error {
 				return err
 			}
 
-			fmt.Printf("StatusCode: %d\n", statusCode)
 			if statusCode == args.StatusCode {
 				return nil
 			}
@@ -72,7 +73,6 @@ func (useCase *useCase) Wait(args *WaitArgs) error {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Result: %v\n", body)
 			if body == args.Result {
 				return nil
 			}
@@ -85,6 +85,6 @@ func (useCase *useCase) Wait(args *WaitArgs) error {
 			return fmt.Errorf("Timeout")
 		}
 		fmt.Printf("Wait for 5sec.\n")
-		time.Sleep(5 * time.Second)
+		time.Sleep(time.Duration(args.Interval) * time.Second)
 	}
 }

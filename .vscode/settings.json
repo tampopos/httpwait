@@ -1,7 +1,11 @@
 {
   "files.autoSave": "onFocusChange",
   "editor.formatOnSave": true,
-  "cSpell.words": ["httpwait", "tampopos"],
+  "cSpell.words": [
+    "gomock",
+    "httpwait",
+    "tampopos"
+  ],
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,

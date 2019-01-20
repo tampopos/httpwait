@@ -9,12 +9,24 @@ jobs:
     steps:
       - checkout
       - run:
+          name: init
+          command: go mod init
+      - run:
           name: build
           command: go build -o dist/httpwait ./src
+      - run:
+          name: test
+          command: go test ./src/httpwait/ -test.v
   publish:
     executor: golang
     steps:
       - checkout
+      - run:
+          name: init
+          command: go mod init
+      - run:
+          name: test
+          command: go test ./src/httpwait/ -test.v
       - run:
           name: build
           command: |
