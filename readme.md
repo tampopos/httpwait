@@ -4,7 +4,7 @@
 
 ## Required
 
-go
+go(v1.11 以降)
 
 ## Command
 
