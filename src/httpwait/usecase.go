@@ -57,34 +57,59 @@ func (useCase *useCase) CreateArgs() (*WaitArgs, error) {
 // Wait は Timeoutになるまでリクエストします
 func (useCase *useCase) Wait(args *WaitArgs) error {
 	useCase.stopwatch.Start()
+	chanel := make(chan string)
+
+	go useCase.polling(args, chanel)
+
+	return useCase.receive(args, chanel)
+}
+func (useCase *useCase) receive(args *WaitArgs, chanel chan string) error {
+	timeout := time.Duration(args.Timeout) * time.Second
 	for {
-		if args.StatusCode != -1 {
-			statusCode, err := useCase.client.GetStatusCode(&args.Request)
-			if err != nil {
-				return err
-			}
-
-			if statusCode == args.StatusCode {
+		select {
+		case msg := <-chanel:
+			if msg == "" {
 				return nil
 			}
-			fmt.Printf("Failed: status code is not %v\n", args.StatusCode)
-		} else {
-			body, err := useCase.client.GetBody(&args.Request)
-			if err != nil {
-				return err
-			}
-			if body == args.Result {
-				return nil
-			}
-			fmt.Printf("Failed: result is not %s\n", args.Result)
-		}
-
-		var elapsed = useCase.stopwatch.GetElapsedSeconds()
-		fmt.Printf("elapsed %v sec.\n", elapsed)
-		if args.Timeout <= elapsed {
+			return fmt.Errorf(msg)
+		case <-time.After(timeout):
 			return fmt.Errorf("Timeout")
 		}
-		fmt.Printf("Wait for 5sec.\n")
-		time.Sleep(time.Duration(args.Interval) * time.Second)
+	}
+}
+func (useCase *useCase) polling(args *WaitArgs, chanel chan string) {
+	for {
+		go useCase.check(args, chanel)
+		var elapsed = useCase.stopwatch.GetElapsedSeconds()
+		fmt.Printf("elapsed %v sec.\n", elapsed)
+		interval := time.Duration(args.Interval) * time.Second
+		fmt.Printf("Wait for %v sec.\n", interval)
+		time.Sleep(interval)
+	}
+}
+func (useCase *useCase) check(args *WaitArgs, chanel chan string) {
+	if args.StatusCode != -1 {
+		statusCode, err := useCase.client.GetStatusCode(&args.Request)
+		if err != nil {
+			chanel <- err.Error()
+			return
+		}
+
+		if statusCode == args.StatusCode {
+			chanel <- ""
+			return
+		}
+		fmt.Printf("Failed: status code is not %v\n", args.StatusCode)
+	} else {
+		body, err := useCase.client.GetBody(&args.Request)
+		if err != nil {
+			chanel <- err.Error()
+			return
+		}
+		if body == args.Result {
+			chanel <- ""
+			return
+		}
+		fmt.Printf("Failed: result is not %s\n", args.Result)
 	}
 }

@@ -20,13 +20,15 @@ func TestOnFirstSuccessByStatusCode(t *testing.T) {
 			URL:     "http://example.com/",
 		},
 		StatusCode: 200,
+		Interval:   1,
 	}
 
 	mockStopwatch := NewMockStopwatch(ctrl)
 	mockStopwatch.EXPECT().Start().Return(mockStopwatch)
+	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10)).AnyTimes()
 
 	mockClient := NewMockClient(ctrl)
-	mockClient.EXPECT().GetStatusCode(gomock.Eq(&args.Request)).Return(200, nil)
+	mockClient.EXPECT().GetStatusCode(gomock.Eq(&args.Request)).Return(200, nil).AnyTimes()
 
 	useCase := httpwait.CreateUseCase(mockStopwatch, mockClient)
 	err := useCase.Wait(args)
@@ -46,15 +48,16 @@ func TestOnSecondSuccessByStatusCode(t *testing.T) {
 			URL:     "http://example.com/",
 		},
 		StatusCode: 200,
+		Interval:   1,
 	}
 
 	mockStopwatch := NewMockStopwatch(ctrl)
 	mockStopwatch.EXPECT().Start().Return(mockStopwatch)
-	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10))
+	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10)).AnyTimes()
 
 	mockClient := NewMockClient(ctrl)
 	mockClient.EXPECT().GetStatusCode(gomock.Eq(&args.Request)).Return(404, nil).Times(1)
-	mockClient.EXPECT().GetStatusCode(gomock.Eq(&args.Request)).Return(200, nil).Times(1)
+	mockClient.EXPECT().GetStatusCode(gomock.Eq(&args.Request)).Return(200, nil).AnyTimes()
 
 	useCase := httpwait.CreateUseCase(mockStopwatch, mockClient)
 	err := useCase.Wait(args)
@@ -75,13 +78,15 @@ func TestOnFirstSuccessByBody(t *testing.T) {
 		},
 		Result:     "200",
 		StatusCode: -1,
+		Interval:   1,
 	}
 
 	mockStopwatch := NewMockStopwatch(ctrl)
 	mockStopwatch.EXPECT().Start().Return(mockStopwatch)
+	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10)).AnyTimes()
 
 	mockClient := NewMockClient(ctrl)
-	mockClient.EXPECT().GetBody(gomock.Eq(&args.Request)).Return("200", nil)
+	mockClient.EXPECT().GetBody(gomock.Eq(&args.Request)).Return("200", nil).AnyTimes()
 
 	useCase := httpwait.CreateUseCase(mockStopwatch, mockClient)
 	err := useCase.Wait(args)
@@ -102,15 +107,16 @@ func TestOnSecondSuccessByBody(t *testing.T) {
 		},
 		Result:     "200",
 		StatusCode: -1,
+		Interval:   1,
 	}
 
 	mockStopwatch := NewMockStopwatch(ctrl)
 	mockStopwatch.EXPECT().Start().Return(mockStopwatch)
-	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10))
+	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10)).AnyTimes()
 
 	mockClient := NewMockClient(ctrl)
 	mockClient.EXPECT().GetBody(gomock.Eq(&args.Request)).Return("404", nil).Times(1)
-	mockClient.EXPECT().GetBody(gomock.Eq(&args.Request)).Return("200", nil).Times(1)
+	mockClient.EXPECT().GetBody(gomock.Eq(&args.Request)).Return("200", nil).AnyTimes()
 
 	useCase := httpwait.CreateUseCase(mockStopwatch, mockClient)
 	err := useCase.Wait(args)
@@ -119,22 +125,23 @@ func TestOnSecondSuccessByBody(t *testing.T) {
 		t.Fatalf("failed test %#v", err)
 	}
 }
-func TestOnFirstTimeout(t *testing.T) {
+func TestOnTimeout(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	args := &httpwait.WaitArgs{
 		Request: client.Request{
 			Method:  "GET",
-			Timeout: 10,
+			Timeout: 2,
 			URL:     "http://example.com/",
 		},
 		StatusCode: 200,
+		Interval:   1,
 	}
 
 	mockStopwatch := NewMockStopwatch(ctrl)
 	mockStopwatch.EXPECT().Start().Return(mockStopwatch)
-	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10))
+	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10)).AnyTimes()
 
 	mockClient := NewMockClient(ctrl)
 	mockClient.EXPECT().GetStatusCode(gomock.Eq(&args.Request)).Return(404, nil).AnyTimes()
@@ -142,37 +149,6 @@ func TestOnFirstTimeout(t *testing.T) {
 	useCase := httpwait.CreateUseCase(mockStopwatch, mockClient)
 	err := useCase.Wait(args)
 
-	if err.Error() != fmt.Errorf("Timeout").Error() {
-		if err != nil {
-			t.Fatalf("failed test %#v", err)
-			return
-		}
-		t.Fatalf("failed test")
-	}
-}
-func TestOnSecondTimeout(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	args := &httpwait.WaitArgs{
-		Request: client.Request{
-			Method:  "GET",
-			Timeout: 20,
-			URL:     "http://example.com/",
-		},
-		StatusCode: 200,
-	}
-
-	mockStopwatch := NewMockStopwatch(ctrl)
-	mockStopwatch.EXPECT().Start().Return(mockStopwatch)
-	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10)).Times(1)
-	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(20)).Times(1)
-
-	mockClient := NewMockClient(ctrl)
-	mockClient.EXPECT().GetStatusCode(gomock.Eq(&args.Request)).Return(404, nil).AnyTimes()
-
-	useCase := httpwait.CreateUseCase(mockStopwatch, mockClient)
-	err := useCase.Wait(args)
 	if err.Error() != fmt.Errorf("Timeout").Error() {
 		if err != nil {
 			t.Fatalf("failed test %#v", err)
@@ -192,10 +168,12 @@ func TestOnErrorByStatusCode(t *testing.T) {
 			URL:     "http://example.com/",
 		},
 		StatusCode: 200,
+		Interval:   1,
 	}
 
 	mockStopwatch := NewMockStopwatch(ctrl)
 	mockStopwatch.EXPECT().Start().Return(mockStopwatch)
+	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10)).AnyTimes()
 
 	mockClient := NewMockClient(ctrl)
 	mockClient.EXPECT().GetStatusCode(gomock.Eq(&args.Request)).Return(-1, fmt.Errorf("Error")).AnyTimes()
@@ -222,10 +200,12 @@ func TestOnErrorByBody(t *testing.T) {
 		},
 		Result:     "200",
 		StatusCode: -1,
+		Interval:   1,
 	}
 
 	mockStopwatch := NewMockStopwatch(ctrl)
 	mockStopwatch.EXPECT().Start().Return(mockStopwatch)
+	mockStopwatch.EXPECT().GetElapsedSeconds().Return(float64(10)).AnyTimes()
 
 	mockClient := NewMockClient(ctrl)
 	mockClient.EXPECT().GetBody(gomock.Eq(&args.Request)).Return("", fmt.Errorf("Error")).AnyTimes()
