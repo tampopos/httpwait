@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"../client"
-	"../stopwatch"
+	"github.com/tampopos/httpwait/src/client"
+	"github.com/tampopos/httpwait/src/stopwatch"
 )
 
 // UseCase は構造体です

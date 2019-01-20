@@ -8,6 +8,12 @@ go
 
 ## Command
 
+#### Init
+
+```sh
+go mod init
+```
+
 #### Run
 
 ```sh

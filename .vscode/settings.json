@@ -1,7 +1,7 @@
 {
   "files.autoSave": "onFocusChange",
   "editor.formatOnSave": true,
-  "cSpell.words": ["httpwait"],
+  "cSpell.words": ["httpwait", "tampopos"],
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,
@@ -10,5 +10,15 @@
     "**/.DS_Store": true,
     "**/dist": true
   },
-  "cSpell.ignoreRegExpList": ["/.*ー/"]
+  "cSpell.ignoreRegExpList": ["/.*ー/"],
+  "cSpell.ignorePaths": [
+    "**/package-lock.json",
+    "**/node_modules/**",
+    "**/vscode-extension/**",
+    "**/.git/**",
+    ".vscode",
+    "typings",
+    "go.mod",
+    "go.sum"
+  ]
 }

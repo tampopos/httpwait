@@ -4,19 +4,23 @@ import (
 	"fmt"
 	"os"
 
-	"./client"
-	"./httpwait"
-	"./stopwatch"
+	"github.com/tampopos/httpwait/src/di"
+	"github.com/tampopos/httpwait/src/httpwait"
 )
 
 func main() {
-	executeHttpwait()
+	container, err := di.CreateContainer()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		os.Exit(1)
+	}
+	if err := container.Invoke(executeHttpwait); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		os.Exit(1)
+	}
 }
 
-func executeHttpwait() {
-	var c = client.Create()
-	var s = stopwatch.New()
-	var useCase = httpwait.CreateUseCase(s, c)
+func executeHttpwait(useCase httpwait.UseCase) {
 	var args, err = useCase.CreateArgs()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
