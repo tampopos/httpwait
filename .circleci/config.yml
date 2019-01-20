@@ -13,14 +13,14 @@ jobs:
           command: go build -o dist/httpwait ./src
       - run:
           name: test
-          command: go test ./src/httpwait/ -test.v
+          command: go test ./src/httpwait/tests/ -test.v
   publish:
     executor: golang
     steps:
       - checkout
       - run:
           name: test
-          command: go test ./src/httpwait/ -test.v
+          command: go test ./src/httpwait/tests/ -test.v
       - run:
           name: build
           command: |

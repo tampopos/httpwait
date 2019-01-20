@@ -29,7 +29,7 @@ go build -o dist/httpwait
 #### Test
 
 ```sh
-go test ./src/httpwait/ -test.v
+go test ./src/httpwait/tests/ -test.v
 ```
 
 #### Release
@@ -51,3 +51,5 @@ git push origin --tags
   Timeout Seconds (default 60)
 - **url** `string`  
   HTTP Request URL
+- **interval** `int`  
+  Request Interval Seconds

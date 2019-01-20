@@ -2,7 +2,7 @@
 // Source: ./src/stopwatch/stopwatch.go
 
 // Package mock_stopwatch is a generated GoMock package.
-package httpwait
+package httpwaittest
 
 import (
 	reflect "reflect"

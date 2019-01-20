@@ -2,7 +2,7 @@
 // Source: ./src/client/client.go
 
 // Package mock_client is a generated GoMock package.
-package httpwait
+package httpwaittest
 
 import (
 	reflect "reflect"
