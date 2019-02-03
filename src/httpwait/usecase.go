@@ -58,28 +58,28 @@ func (useCase *useCase) CreateArgs() (*WaitArgs, error) {
 func (useCase *useCase) Wait(args *WaitArgs) error {
 	useCase.stopwatch.Start()
 	ch := make(chan string)
+	errCh := make(chan string)
 
-	go useCase.polling(args, ch)
+	go useCase.polling(args, ch, errCh)
 
-	return useCase.receive(args, ch)
+	return useCase.receive(args, ch, errCh)
 }
-func (useCase *useCase) receive(args *WaitArgs, ch chan string) error {
+func (useCase *useCase) receive(args *WaitArgs, ch chan string, errCh chan string) error {
 	timeout := time.Duration(args.Timeout) * time.Second
 	for {
 		select {
-		case msg := <-ch:
-			if msg == "" {
-				return nil
-			}
+		case _ = <-ch:
+			return nil
+		case msg := <-errCh:
 			return fmt.Errorf(msg)
 		case <-time.After(timeout):
 			return fmt.Errorf("Timeout")
 		}
 	}
 }
-func (useCase *useCase) polling(args *WaitArgs, ch chan string) {
+func (useCase *useCase) polling(args *WaitArgs, ch chan string, errCh chan string) {
 	for {
-		go useCase.check(args, ch)
+		go useCase.check(args, ch, errCh)
 		var elapsed = useCase.stopwatch.GetElapsedSeconds()
 		fmt.Printf("elapsed %v sec.\n", elapsed)
 		interval := time.Duration(args.Interval) * time.Second
@@ -87,27 +87,27 @@ func (useCase *useCase) polling(args *WaitArgs, ch chan string) {
 		time.Sleep(interval)
 	}
 }
-func (useCase *useCase) check(args *WaitArgs, ch chan string) {
+func (useCase *useCase) check(args *WaitArgs, ch chan string, errCh chan string) {
 	if args.StatusCode != -1 {
 		statusCode, err := useCase.client.GetStatusCode(&args.Request)
 		if err != nil {
-			ch <- err.Error()
+			errCh <- err.Error()
 			return
 		}
 
 		if statusCode == args.StatusCode {
-			ch <- ""
+			ch <- "complete"
 			return
 		}
 		fmt.Printf("Failed: status code is not %v\n", args.StatusCode)
 	} else {
 		body, err := useCase.client.GetBody(&args.Request)
 		if err != nil {
-			ch <- err.Error()
+			errCh <- err.Error()
 			return
 		}
 		if body == args.Result {
-			ch <- ""
+			ch <- "complete"
 			return
 		}
 		fmt.Printf("Failed: result is not %s\n", args.Result)
