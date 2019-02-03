@@ -57,17 +57,17 @@ func (useCase *useCase) CreateArgs() (*WaitArgs, error) {
 // Wait は Timeoutになるまでリクエストします
 func (useCase *useCase) Wait(args *WaitArgs) error {
 	useCase.stopwatch.Start()
-	chanel := make(chan string)
+	ch := make(chan string)
 
-	go useCase.polling(args, chanel)
+	go useCase.polling(args, ch)
 
-	return useCase.receive(args, chanel)
+	return useCase.receive(args, ch)
 }
-func (useCase *useCase) receive(args *WaitArgs, chanel chan string) error {
+func (useCase *useCase) receive(args *WaitArgs, ch chan string) error {
 	timeout := time.Duration(args.Timeout) * time.Second
 	for {
 		select {
-		case msg := <-chanel:
+		case msg := <-ch:
 			if msg == "" {
 				return nil
 			}
@@ -77,9 +77,9 @@ func (useCase *useCase) receive(args *WaitArgs, chanel chan string) error {
 		}
 	}
 }
-func (useCase *useCase) polling(args *WaitArgs, chanel chan string) {
+func (useCase *useCase) polling(args *WaitArgs, ch chan string) {
 	for {
-		go useCase.check(args, chanel)
+		go useCase.check(args, ch)
 		var elapsed = useCase.stopwatch.GetElapsedSeconds()
 		fmt.Printf("elapsed %v sec.\n", elapsed)
 		interval := time.Duration(args.Interval) * time.Second
@@ -87,27 +87,27 @@ func (useCase *useCase) polling(args *WaitArgs, chanel chan string) {
 		time.Sleep(interval)
 	}
 }
-func (useCase *useCase) check(args *WaitArgs, chanel chan string) {
+func (useCase *useCase) check(args *WaitArgs, ch chan string) {
 	if args.StatusCode != -1 {
 		statusCode, err := useCase.client.GetStatusCode(&args.Request)
 		if err != nil {
-			chanel <- err.Error()
+			ch <- err.Error()
 			return
 		}
 
 		if statusCode == args.StatusCode {
-			chanel <- ""
+			ch <- ""
 			return
 		}
 		fmt.Printf("Failed: status code is not %v\n", args.StatusCode)
 	} else {
 		body, err := useCase.client.GetBody(&args.Request)
 		if err != nil {
-			chanel <- err.Error()
+			ch <- err.Error()
 			return
 		}
 		if body == args.Result {
-			chanel <- ""
+			ch <- ""
 			return
 		}
 		fmt.Printf("Failed: result is not %s\n", args.Result)
