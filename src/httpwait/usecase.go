@@ -66,15 +66,13 @@ func (useCase *useCase) Wait(args *WaitArgs) error {
 }
 func (useCase *useCase) receive(args *WaitArgs, ch chan string, errCh chan string) error {
 	timeout := time.Duration(args.Timeout) * time.Second
-	for {
-		select {
-		case _ = <-ch:
-			return nil
-		case msg := <-errCh:
-			return fmt.Errorf(msg)
-		case <-time.After(timeout):
-			return fmt.Errorf("Timeout")
-		}
+	select {
+	case _ = <-ch:
+		return nil
+	case msg := <-errCh:
+		return fmt.Errorf(msg)
+	case <-time.After(timeout):
+		return fmt.Errorf("Timeout")
 	}
 }
 func (useCase *useCase) polling(args *WaitArgs, ch chan string, errCh chan string) {
