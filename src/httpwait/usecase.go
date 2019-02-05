@@ -68,6 +68,7 @@ func (useCase *useCase) receive(args *WaitArgs, ch chan bool, errCh chan string)
 	timeout := time.Duration(args.Timeout) * time.Second
 	select {
 	case _ = <-ch:
+		fmt.Printf("Success!\n")
 		return nil
 	case msg := <-errCh:
 		return fmt.Errorf(msg)
@@ -77,9 +78,10 @@ func (useCase *useCase) receive(args *WaitArgs, ch chan bool, errCh chan string)
 }
 func (useCase *useCase) polling(args *WaitArgs, ch chan bool, errCh chan string) {
 	for {
-		go useCase.check(args, ch, errCh)
 		var elapsed = useCase.stopwatch.GetElapsedSeconds()
 		fmt.Printf("elapsed %v sec.\n", elapsed)
+		fmt.Printf("check start.\n")
+		go useCase.check(args, ch, errCh)
 		interval := time.Duration(args.Interval) * time.Second
 		fmt.Printf("Wait for %v sec.\n", interval)
 		time.Sleep(interval)

@@ -31,5 +31,4 @@ func executeHttpwait(useCase httpwait.UseCase) {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Success!\n")
 }
