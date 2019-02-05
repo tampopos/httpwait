@@ -57,14 +57,14 @@ func (useCase *useCase) CreateArgs() (*WaitArgs, error) {
 // Wait は Timeoutになるまでリクエストします
 func (useCase *useCase) Wait(args *WaitArgs) error {
 	useCase.stopwatch.Start()
-	ch := make(chan string)
+	ch := make(chan bool)
 	errCh := make(chan string)
 
 	go useCase.polling(args, ch, errCh)
 
 	return useCase.receive(args, ch, errCh)
 }
-func (useCase *useCase) receive(args *WaitArgs, ch chan string, errCh chan string) error {
+func (useCase *useCase) receive(args *WaitArgs, ch chan bool, errCh chan string) error {
 	timeout := time.Duration(args.Timeout) * time.Second
 	select {
 	case _ = <-ch:
@@ -75,7 +75,7 @@ func (useCase *useCase) receive(args *WaitArgs, ch chan string, errCh chan strin
 		return fmt.Errorf("Timeout")
 	}
 }
-func (useCase *useCase) polling(args *WaitArgs, ch chan string, errCh chan string) {
+func (useCase *useCase) polling(args *WaitArgs, ch chan bool, errCh chan string) {
 	for {
 		go useCase.check(args, ch, errCh)
 		var elapsed = useCase.stopwatch.GetElapsedSeconds()
@@ -85,7 +85,7 @@ func (useCase *useCase) polling(args *WaitArgs, ch chan string, errCh chan strin
 		time.Sleep(interval)
 	}
 }
-func (useCase *useCase) check(args *WaitArgs, ch chan string, errCh chan string) {
+func (useCase *useCase) check(args *WaitArgs, ch chan bool, errCh chan string) {
 	if args.StatusCode != -1 {
 		statusCode, err := useCase.client.GetStatusCode(&args.Request)
 		if err != nil {
@@ -94,7 +94,7 @@ func (useCase *useCase) check(args *WaitArgs, ch chan string, errCh chan string)
 		}
 
 		if statusCode == args.StatusCode {
-			ch <- "complete"
+			ch <- true
 			return
 		}
 		fmt.Printf("Failed: status code is not %v\n", args.StatusCode)
@@ -105,7 +105,7 @@ func (useCase *useCase) check(args *WaitArgs, ch chan string, errCh chan string)
 			return
 		}
 		if body == args.Result {
-			ch <- "complete"
+			ch <- true
 			return
 		}
 		fmt.Printf("Failed: result is not %s\n", args.Result)
